@@ -24,10 +24,8 @@
         <p class="text-slate-400 text-xs sm:text-sm mt-1">Compteur de scores étape par étape avec archives locales</p>
     </header>
 
-    <!-- Contenu Principal -->
-    <main id="app" class="w-full max-w-3xl flex-grow flex flex-col justify-center">
-        <div class="text-center text-amber-400 font-pirate text-2xl">Chargement de l'équipage...</div>
-    </main>
+    <!-- Contenu Principal (Vide par défaut, chargé instantanément par le JS) -->
+    <main id="app" class="w-full max-w-3xl flex-grow flex flex-col justify-center"></main>
 
     <!-- Modale Bonus & Extension -->
     <div id="bonus-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4 z-50">
@@ -36,7 +34,6 @@
             <p class="text-xs text-slate-400 mb-4">Sélectionne les bonus réussis pour ce joueur (si la mise est ratée, les bonus rapportent 0 !).</p>
             
             <div class="space-y-2.5 mb-6 max-h-[55vh] overflow-y-auto pr-1">
-                <!-- Bonus de Base -->
                 <div class="text-[11px] uppercase tracking-wider text-amber-400 font-bold pt-1">Règles de Base</div>
                 <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#0b132b]/60 border border-slate-700/80">
                     <span class="text-sm">14 Classique <span class="text-xs text-amber-400">(+10 pts/carte)</span></span>
@@ -59,7 +56,6 @@
                     <input type="checkbox" id="b-mermaid-sk" class="h-5 w-5 rounded text-amber-600 bg-slate-800 border-slate-600 cursor-pointer" onchange="updateModalTotal()">
                 </label>
 
-                <!-- Éléments de l'Extension -->
                 <div id="extension-bonus-section" class="hidden space-y-2.5 pt-2 border-t border-slate-700">
                     <div class="text-[11px] uppercase tracking-wider text-cyan-400 font-bold pt-1">🎁 Éléments de l'Extension</div>
                     <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#0b132b]/60 border border-slate-700/80">
@@ -131,14 +127,24 @@
                 scores = JSON.parse(localStorage.getItem('sk_scores')) || {};
                 bonusDetails = JSON.parse(localStorage.getItem('sk_bonus_details')) || {};
             } catch (e) {
-                gameState = 'setup';
-                currentRound = 0;
-                players = ["Capitaine", "Anne", "Jack"];
-                options = { rascal: false, extension: false };
-                scores = {};
-                bonusDetails = {};
-                localStorage.clear();
+                // En cas de sauvegarde corrompue, on écrase tout pour éviter le blocage
+                resetAllData();
             }
+        }
+
+        function resetAllData() {
+            gameState = 'setup';
+            currentRound = 0;
+            players = ["Capitaine", "Anne", "Jack"];
+            options = { rascal: false, extension: false };
+            scores = {};
+            bonusDetails = {};
+            localStorage.removeItem('sk_state');
+            localStorage.removeItem('sk_current_round');
+            localStorage.removeItem('sk_players');
+            localStorage.removeItem('sk_options');
+            localStorage.removeItem('sk_scores');
+            localStorage.removeItem('sk_bonus_details');
         }
 
         function saveToStorage() {
@@ -154,19 +160,23 @@
             }
         }
 
-        function init() {
-            safeLoad();
-            render();
-        }
-
         function render() {
             const app = document.getElementById('app');
-            if (gameState === 'setup') {
+            try {
+                if (gameState === 'setup') {
+                    app.innerHTML = renderSetupScreen();
+                } else if (gameState === 'playing') {
+                    app.innerHTML = renderGameScreen();
+                } else if (gameState === 'finished') {
+                    app.innerHTML = renderFinishedScreen();
+                } else {
+                    resetAllData();
+                    app.innerHTML = renderSetupScreen();
+                }
+            } catch (err) {
+                // Si l'affichage plante à cause d'une donnée invalide, on remet à zéro.
+                resetAllData();
                 app.innerHTML = renderSetupScreen();
-            } else if (gameState === 'playing') {
-                app.innerHTML = renderGameScreen();
-            } else if (gameState === 'finished') {
-                app.innerHTML = renderFinishedScreen();
             }
         }
 
@@ -316,11 +326,4 @@
                             <h2 class="font-pirate text-3xl sm:text-4xl text-amber-300">${roundNum} Carte${roundNum > 1 ? 's' : ''} distribuée${roundNum > 1 ? 's' : ''}</h2>
                         </div>
                         <div class="flex gap-2 w-full sm:w-auto">
-                            <button onclick="openHistoryModal()" class="flex-1 sm:flex-none text-xs bg-slate-800 hover:bg-slate-700 text-amber-300 px-3 py-2 rounded-xl border border-slate-600 font-semibold transition">📜 Registre</button>
-                            <button onclick="backToSetup()" class="flex-1 sm:flex-none text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-xl border border-slate-600 transition">⚙️ Équipage</button>
-                        </div>
-                    </div>
-
-                    <div class="bg-[#0b132b]/70 p-3 rounded-xl border border-slate-700/60 mb-4 flex flex-wrap gap-2 items-center justify-between text-xs">
-                        <span class="text-slate-400 font-semibold">Classement provisoire :</span>
-                        <d
+                            <button onclick="openHistoryModal()" class="flex-1 sm:flex-none text-xs bg-slate-800 hover:bg-slate-700 text-amber-300 px-3 py-2 rounded-xl border border-slate-600 font-semibold transition">📜 Regis
