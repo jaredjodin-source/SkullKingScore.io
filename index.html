@@ -8,120 +8,91 @@
     <link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         .font-pirate { font-family: 'Pirata One', cursive; }
-        body { font-family: 'Inter', sans-serif; background-color: #0b132b; color: #e2e8f0; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            color: #e2e8f0; 
+            /* C'est ICI que tu gères ton image de fond */
+            background-color: #0b132b; /* Couleur de secours */
+            background-image: linear-gradient(rgba(11, 19, 43, 0.85), rgba(11, 19, 43, 0.95)), url('images/fond-pirate.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
         input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        .glass-panel { background: rgba(28, 37, 65, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        
+        /* Effet verre pour les panneaux pour voir un peu l'image au travers */
+        .glass-panel { 
+            background: rgba(15, 23, 42, 0.6); 
+            backdrop-filter: blur(10px); 
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
     </style>
 </head>
-<body class="bg-[#0b132b] min-h-screen text-slate-100 flex flex-col items-center justify-between p-3 sm:p-6 selection:bg-amber-500 selection:text-slate-950">
+<body class="min-h-screen flex flex-col items-center justify-between p-3 sm:p-6 selection:bg-amber-500 selection:text-slate-950">
 
     <!-- En-tête -->
-    <header class="text-center mb-4 w-full max-w-3xl">
-        <h1 class="font-pirate text-4xl sm:text-6xl text-amber-400 tracking-wider drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
-            🏴‍☠️ Skull King : Le Trône des Sept Mers 🏴‍☠️
+    <header class="text-center mb-4 w-full max-w-3xl z-10">
+        <h1 class="font-pirate text-5xl sm:text-7xl text-amber-400 tracking-wider drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]">
+            🏴‍☠️ Skull King 🏴‍☠️
         </h1>
-        <p class="text-slate-400 text-xs sm:text-sm mt-1">Compteur de scores étape par étape avec archives locales</p>
+        <h2 class="font-pirate text-2xl sm:text-3xl text-amber-200 mt-1 drop-shadow-lg">Le Trône des Sept Mers</h2>
     </header>
 
-    <!-- Contenu Principal (Menu affiché directement en HTML brut) -->
-    <main id="app" class="w-full max-w-3xl flex-grow flex flex-col justify-center">
-        <div class="glass-panel rounded-2xl p-6 shadow-2xl">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="font-pirate text-3xl text-amber-300 flex items-center gap-2">
-                    <span>⚓</span> Équipage & Paramètres
-                </h2>
-                <button onclick="openArchivesModal()" class="text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-3 py-2 rounded-xl font-semibold transition flex items-center gap-1">
-                    📜 Anciennes Parties
-                </button>
-            </div>
-            
-            <div class="mb-5">
-                <label class="block text-sm font-medium text-slate-300 mb-2">Noms des flibustiers :</label>
-                <div class="space-y-2.5 mb-3" id="player-inputs">
-                    <div class="flex gap-2 items-center">
-                        <input type="text" value="Capitaine" onchange="updatePlayerName(0, this.value)" 
-                            class="bg-[#0b132b] border border-slate-600 rounded-xl px-3.5 py-2.5 text-slate-100 flex-grow focus:outline-none focus:border-amber-400 font-medium">
-                        <button onclick="removeSetupPlayer(0)" class="bg-rose-900/40 hover:bg-rose-800 text-rose-300 px-3.5 py-2.5 rounded-xl font-bold transition">×</button>
-                    </div>
-                    <div class="flex gap-2 items-center">
-                        <input type="text" value="Anne" onchange="updatePlayerName(1, this.value)" 
-                            class="bg-[#0b132b] border border-slate-600 rounded-xl px-3.5 py-2.5 text-slate-100 flex-grow focus:outline-none focus:border-amber-400 font-medium">
-                        <button onclick="removeSetupPlayer(1)" class="bg-rose-900/40 hover:bg-rose-800 text-rose-300 px-3.5 py-2.5 rounded-xl font-bold transition">×</button>
-                    </div>
-                    <div class="flex gap-2 items-center">
-                        <input type="text" value="Jack" onchange="updatePlayerName(2, this.value)" 
-                            class="bg-[#0b132b] border border-slate-600 rounded-xl px-3.5 py-2.5 text-slate-100 flex-grow focus:outline-none focus:border-amber-400 font-medium">
-                        <button onclick="removeSetupPlayer(2)" class="bg-rose-900/40 hover:bg-rose-800 text-rose-300 px-3.5 py-2.5 rounded-xl font-bold transition">×</button>
-                    </div>
-                </div>
-                <div class="flex gap-2">
-                    <input type="text" id="new-player-input" placeholder="Nom du nouveau joueur..." class="bg-[#0b132b] border border-slate-600 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 flex-grow focus:outline-none focus:border-amber-400">
-                    <button onclick="addSetupPlayer()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-sm transition shadow">Ajouter</button>
-                </div>
-            </div>
-
-            <div class="bg-[#0b132b]/80 p-4 rounded-xl border border-slate-700/80 mb-6 space-y-3">
-                <h3 class="text-sm font-semibold text-amber-400">📜 Règles optionnelles :</h3>
-                <label class="flex items-center gap-3 cursor-pointer text-sm">
-                    <input type="checkbox" id="opt-rascal" onchange="options.rascal = this.checked; saveToStorage();" class="rounded text-amber-600 h-4 w-4 bg-slate-800 border-slate-600 cursor-pointer">
-                    <span>Variante Rascal <span class="text-xs text-slate-400">(Points de mise fixes 20pt/carte sur pari 0)</span></span>
-                </label>
-                <label class="flex items-center gap-3 cursor-pointer text-sm">
-                    <input type="checkbox" id="opt-extension" onchange="options.extension = this.checked; saveToStorage();" class="rounded text-cyan-600 h-4 w-4 bg-slate-800 border-slate-600 cursor-pointer">
-                    <span>Activer l'Extension <span class="text-xs text-slate-400">(Kraken, Baleine Blanche, Butins)</span></span>
-                </label>
-            </div>
-
-            <button onclick="startVoyage()" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-pirate text-2xl py-3.5 rounded-xl shadow-xl transition tracking-wide font-bold">
-                Hisser les voiles ! 🏴‍☠️
-            </button>
+    <!-- C'est ici que le JavaScript va injecter l'application de manière sécurisée -->
+    <main id="app" class="w-full max-w-3xl flex-grow flex flex-col justify-center z-10">
+        <!-- Message de chargement temporaire -->
+        <div class="text-center text-amber-500 font-pirate text-2xl animate-pulse">
+            Chargement du navire... ⚓
         </div>
     </main>
 
     <!-- Modale Bonus & Extension -->
-    <div id="bonus-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4 z-50">
-        <div class="glass-panel rounded-2xl p-6 w-full max-w-md shadow-2xl border-amber-500/40">
+    <div id="bonus-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="glass-panel rounded-2xl p-6 w-full max-w-md border border-amber-500/40">
             <h3 class="font-pirate text-2xl text-amber-400 mb-1">💎 Bonus & Captures</h3>
-            <p class="text-xs text-slate-400 mb-4">Sélectionne les bonus réussis pour ce joueur (si la mise est ratée, les bonus rapportent 0 !).</p>
+            <p class="text-xs text-slate-400 mb-4">Sélectionne les bonus (rapportent 0 si la mise est ratée).</p>
             
             <div class="space-y-2.5 mb-6 max-h-[55vh] overflow-y-auto pr-1">
                 <div class="text-[11px] uppercase tracking-wider text-amber-400 font-bold pt-1">Règles de Base</div>
-                <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#0b132b]/60 border border-slate-700/80">
-                    <span class="text-sm">14 Classique <span class="text-xs text-amber-400">(+10 pts/carte)</span></span>
+                <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-700">
+                    <span class="text-sm">14 Classique <span class="text-xs text-amber-400">(+10)</span></span>
                     <input type="number" id="b-14-std" min="0" max="3" value="0" class="w-16 bg-slate-800 text-center rounded-lg border border-slate-600 py-1 text-slate-100 font-semibold" onchange="updateModalTotal()">
                 </label>
-                <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#0b132b]/60 border border-slate-700/80 cursor-pointer">
-                    <span class="text-sm">14 Noir / Drapeau <span class="text-xs text-amber-400">(+20 pts)</span></span>
+                <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-700 cursor-pointer">
+                    <span class="text-sm">14 Noir / Drapeau <span class="text-xs text-amber-400">(+20)</span></span>
                     <input type="checkbox" id="b-14-black" class="h-5 w-5 rounded text-amber-600 bg-slate-800 border-slate-600 cursor-pointer" onchange="updateModalTotal()">
                 </label>
-                <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#0b132b]/60 border border-slate-700/80">
-                    <span class="text-sm">Pirate capture Sirène <span class="text-xs text-amber-400">(+20 pts/capt.)</span></span>
+                <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-700">
+                    <span class="text-sm">Pirate capture Sirène <span class="text-xs text-amber-400">(+20)</span></span>
                     <input type="number" id="b-pirate-mermaid" min="0" max="5" value="0" class="w-16 bg-slate-800 text-center rounded-lg border border-slate-600 py-1 text-slate-100 font-semibold" onchange="updateModalTotal()">
                 </label>
-                <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#0b132b]/60 border border-slate-700/80">
-                    <span class="text-sm">Skull King capture Pirate <span class="text-xs text-amber-400">(+30 pts/capt.)</span></span>
+                <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-700">
+                    <span class="text-sm">Skull King capture Pirate <span class="text-xs text-amber-400">(+30)</span></span>
                     <input type="number" id="b-sk-pirate" min="0" max="5" value="0" class="w-16 bg-slate-800 text-center rounded-lg border border-slate-600 py-1 text-slate-100 font-semibold" onchange="updateModalTotal()">
                 </label>
-                <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#0b132b]/60 border border-slate-700/80 cursor-pointer">
-                    <span class="text-sm">Sirène capture Skull King <span class="text-xs text-amber-400">(+40 pts)</span></span>
+                <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-700 cursor-pointer">
+                    <span class="text-sm">Sirène capture Skull King <span class="text-xs text-amber-400">(+40)</span></span>
                     <input type="checkbox" id="b-mermaid-sk" class="h-5 w-5 rounded text-amber-600 bg-slate-800 border-slate-600 cursor-pointer" onchange="updateModalTotal()">
                 </label>
 
                 <div id="extension-bonus-section" class="hidden space-y-2.5 pt-2 border-t border-slate-700">
-                    <div class="text-[11px] uppercase tracking-wider text-cyan-400 font-bold pt-1">🎁 Éléments de l'Extension</div>
-                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#0b132b]/60 border border-slate-700/80">
-                        <span class="text-sm">Butin / Trésor récupéré <span class="text-xs text-cyan-400">(+20 pts/artefact)</span></span>
+                    <div class="text-[11px] uppercase tracking-wider text-cyan-400 font-bold pt-1">🎁 Extension</div>
+                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-700">
+                        <span class="text-sm">Butin récupéré <span class="text-xs text-cyan-400">(+20)</span></span>
                         <input type="number" id="b-loot" min="0" max="5" value="0" class="w-16 bg-slate-800 text-center rounded-lg border border-slate-600 py-1 text-slate-100 font-semibold" onchange="updateModalTotal()">
                     </label>
-                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#0b132b]/60 border border-slate-700/80 cursor-pointer">
-                        <span class="text-sm">Kraken / Baleine Blanche <span class="text-xs text-cyan-400">(+30 pts)</span></span>
+                    <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-700 cursor-pointer">
+                        <span class="text-sm">Kraken / Baleine <span class="text-xs text-cyan-400">(+30)</span></span>
                         <input type="checkbox" id="b-extension-special" class="h-5 w-5 rounded text-cyan-600 bg-slate-800 border-slate-600 cursor-pointer" onchange="updateModalTotal()">
                     </label>
                 </div>
             </div>
 
-            <div class="flex items-center justify-between mb-6 bg-[#0b132b] p-3 rounded-xl border border-slate-700">
+            <div class="flex items-center justify-between mb-6 bg-slate-900/80 p-3 rounded-xl border border-slate-700">
                 <span class="font-semibold text-slate-300 text-sm">Total Bonus :</span>
                 <span id="modal-total-display" class="font-pirate text-2xl text-amber-400">0 pts</span>
             </div>
@@ -134,10 +105,10 @@
     </div>
 
     <!-- Modale Historique Global -->
-    <div id="history-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4 z-50">
-        <div class="glass-panel rounded-2xl p-6 w-full max-w-4xl shadow-2xl border-amber-500/40 max-h-[85vh] flex flex-col">
+    <div id="history-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="glass-panel rounded-2xl p-6 w-full max-w-4xl border border-amber-500/40 max-h-[85vh] flex flex-col">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="font-pirate text-3xl text-amber-400">📜 Registre des 10 Manches</h3>
+                <h3 class="font-pirate text-3xl text-amber-400">📜 Registre</h3>
                 <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-white text-xl font-bold px-2">✕</button>
             </div>
             <div id="history-table-container" class="overflow-x-auto flex-grow mb-4"></div>
@@ -146,21 +117,21 @@
     </div>
 
     <!-- Modale Archives -->
-    <div id="archives-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4 z-50">
-        <div class="glass-panel rounded-2xl p-6 w-full max-w-2xl shadow-2xl border-amber-500/40 max-h-[85vh] flex flex-col">
+    <div id="archives-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="glass-panel rounded-2xl p-6 w-full max-w-2xl border border-amber-500/40 max-h-[85vh] flex flex-col">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="font-pirate text-3xl text-amber-400">🏴‍☠️ Archives des Anciennes Parties</h3>
+                <h3 class="font-pirate text-3xl text-amber-400">🏴‍☠️ Archives</h3>
                 <button onclick="closeArchivesModal()" class="text-slate-400 hover:text-white text-xl font-bold px-2">✕</button>
             </div>
             <div id="archives-content" class="overflow-y-auto flex-grow mb-4 space-y-3 pr-1"></div>
             <div class="flex gap-3 pt-2 border-t border-slate-700">
-                <button onclick="clearArchives()" class="bg-rose-900/40 hover:bg-rose-800 text-rose-300 px-4 py-2.5 rounded-xl text-xs font-semibold transition">🗑️ Effacer l'historique</button>
+                <button onclick="clearArchives()" class="bg-rose-900/60 hover:bg-rose-800 text-rose-300 px-4 py-2.5 rounded-xl text-xs font-semibold transition">🗑️ Effacer</button>
                 <button onclick="closeArchivesModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-xl font-semibold transition text-sm">Fermer</button>
             </div>
         </div>
     </div>
 
-    <!-- Script Logique -->
+    <!-- SCRIPT DE GESTION -->
     <script>
         let gameState = 'setup';
         let currentRound = 0;
@@ -170,21 +141,29 @@
         let bonusDetails = {};
         let activeBonusContext = { round: null, playerIndex: null };
 
+        // Charge les données sans faire planter l'application
         function safeLoad() {
             try {
-                gameState = localStorage.getItem('sk_state') || 'setup';
+                if(localStorage.getItem('sk_state')) {
+                    gameState = localStorage.getItem('sk_state');
+                }
                 currentRound = parseInt(localStorage.getItem('sk_current_round'), 10) || 0;
+                
                 let savedPlayers = JSON.parse(localStorage.getItem('sk_players'));
-                if (Array.isArray(savedPlayers) && savedPlayers.length >= 2) players = savedPlayers;
+                if (Array.isArray(savedPlayers) && savedPlayers.length >= 2) {
+                    players = savedPlayers;
+                }
                 
                 let savedOpts = JSON.parse(localStorage.getItem('sk_options'));
                 if (savedOpts) {
                     options.rascal = !!savedOpts.rascal;
                     options.extension = !!savedOpts.extension;
                 }
+                
                 scores = JSON.parse(localStorage.getItem('sk_scores')) || {};
                 bonusDetails = JSON.parse(localStorage.getItem('sk_bonus_details')) || {};
             } catch (e) {
+                console.error("Erreur de chargement, réinitialisation", e);
                 resetAllData();
             }
         }
@@ -196,7 +175,7 @@
             options = { rascal: false, extension: false };
             scores = {};
             bonusDetails = {};
-            localStorage.clear();
+            try { localStorage.clear(); } catch(e) {}
         }
 
         function saveToStorage() {
@@ -210,6 +189,7 @@
             } catch (e) {}
         }
 
+        // Fonction principale de rendu
         function render() {
             const app = document.getElementById('app');
             if (gameState === 'setup') {
@@ -223,46 +203,45 @@
 
         function renderSetupScreen() {
             return `
-                <div class="glass-panel rounded-2xl p-6 shadow-2xl">
-                    <div class="flex justify-between items-center mb-4">
+                <div class="glass-panel rounded-2xl p-6">
+                    <div class="flex justify-between items-center mb-6">
                         <h2 class="font-pirate text-3xl text-amber-300 flex items-center gap-2">
-                            <span>⚓</span> Équipage & Paramètres
+                            <span>⚓</span> Équipage
                         </h2>
-                        <button onclick="openArchivesModal()" class="text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-3 py-2 rounded-xl font-semibold transition flex items-center gap-1">
-                            📜 Anciennes Parties
+                        <button onclick="openArchivesModal()" class="text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/50 px-3 py-2 rounded-xl font-bold transition flex items-center gap-1 shadow-lg">
+                            📜 Archives
                         </button>
                     </div>
                     
                     <div class="mb-5">
-                        <label class="block text-sm font-medium text-slate-300 mb-2">Noms des flibustiers :</label>
-                        <div class="space-y-2.5 mb-3">
+                        <div class="space-y-3 mb-4">
                             ${players.map((p, idx) => `
-                                <div class="flex gap-2 items-center">
+                                <div class="flex gap-2 items-center bg-slate-900/60 p-1.5 rounded-xl border border-slate-700">
                                     <input type="text" value="${p}" onchange="updatePlayerName(${idx}, this.value)" 
-                                        class="bg-[#0b132b] border border-slate-600 rounded-xl px-3.5 py-2.5 text-slate-100 flex-grow focus:outline-none focus:border-amber-400 font-medium">
-                                    ${players.length > 2 ? `<button onclick="removeSetupPlayer(${idx})" class="bg-rose-900/40 hover:bg-rose-800 text-rose-300 px-3.5 py-2.5 rounded-xl font-bold transition">×</button>` : ''}
+                                        class="bg-transparent px-3 py-2 text-slate-100 flex-grow focus:outline-none focus:text-amber-400 font-medium">
+                                    ${players.length > 2 ? `<button onclick="removeSetupPlayer(${idx})" class="bg-rose-900/60 hover:bg-rose-800 text-rose-300 px-3.5 py-2 rounded-lg font-bold transition">✕</button>` : ''}
                                 </div>
                             `).join('')}
                         </div>
-                        <div class="flex gap-2">
-                            <input type="text" id="new-player-input" placeholder="Nom du nouveau joueur..." class="bg-[#0b132b] border border-slate-600 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 flex-grow focus:outline-none focus:border-amber-400">
-                            <button onclick="addSetupPlayer()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-sm transition shadow">Ajouter</button>
+                        <div class="flex gap-2 items-center bg-slate-900/60 p-1.5 rounded-xl border border-slate-700 border-dashed">
+                            <input type="text" id="new-player-input" placeholder="Nouveau pirate..." class="bg-transparent px-3 py-2 text-sm text-slate-100 flex-grow focus:outline-none focus:text-amber-400">
+                            <button onclick="addSetupPlayer()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm transition">Ajouter</button>
                         </div>
                     </div>
 
-                    <div class="bg-[#0b132b]/80 p-4 rounded-xl border border-slate-700/80 mb-6 space-y-3">
-                        <h3 class="text-sm font-semibold text-amber-400">📜 Règles optionnelles :</h3>
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 mb-6 space-y-3">
+                        <h3 class="text-sm font-semibold text-amber-400">📜 Règles :</h3>
                         <label class="flex items-center gap-3 cursor-pointer text-sm">
-                            <input type="checkbox" id="opt-rascal" ${options.rascal ? 'checked' : ''} onchange="options.rascal = this.checked; saveToStorage();" class="rounded text-amber-600 h-4 w-4 bg-slate-800 border-slate-600 cursor-pointer">
-                            <span>Variante Rascal <span class="text-xs text-slate-400">(Points de mise fixes 20pt/carte sur pari 0)</span></span>
+                            <input type="checkbox" ${options.rascal ? 'checked' : ''} onchange="options.rascal = this.checked; saveToStorage();" class="rounded text-amber-600 h-5 w-5 bg-slate-800 border-slate-600 cursor-pointer">
+                            <span>Rascal <span class="text-xs text-slate-400">(Pari 0 = ±20pts/carte)</span></span>
                         </label>
                         <label class="flex items-center gap-3 cursor-pointer text-sm">
-                            <input type="checkbox" id="opt-extension" ${options.extension ? 'checked' : ''} onchange="options.extension = this.checked; saveToStorage();" class="rounded text-cyan-600 h-4 w-4 bg-slate-800 border-slate-600 cursor-pointer">
-                            <span>Activer l'Extension <span class="text-xs text-slate-400">(Kraken, Baleine Blanche, Butins)</span></span>
+                            <input type="checkbox" ${options.extension ? 'checked' : ''} onchange="options.extension = this.checked; saveToStorage();" class="rounded text-cyan-600 h-5 w-5 bg-slate-800 border-slate-600 cursor-pointer">
+                            <span>Extension <span class="text-xs text-slate-400">(Kraken, Butins)</span></span>
                         </label>
                     </div>
 
-                    <button onclick="startVoyage()" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-pirate text-2xl py-3.5 rounded-xl shadow-xl transition tracking-wide font-bold">
+                    <button onclick="startVoyage()" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-pirate text-3xl py-4 rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.4)] transition tracking-wide font-bold">
                         Hisser les voiles ! 🏴‍☠️
                     </button>
                 </div>
@@ -276,4 +255,85 @@
 
         function addSetupPlayer() {
             const input = document.getElementById('new-player-input');
-          
+            const name = input ? input.value.trim() : '';
+            if (name && !players.includes(name)) {
+                players.push(name);
+                saveToStorage();
+                render();
+            }
+        }
+
+        function removeSetupPlayer(idx) {
+            if (players.length > 2) {
+                players.splice(idx, 1);
+                saveToStorage();
+                render();
+            }
+        }
+
+        function startVoyage() {
+            gameState = 'playing';
+            currentRound = 0;
+            scores = {};
+            bonusDetails = {};
+            localStorage.setItem('sk_game_timestamp', Date.now().toString());
+            saveToStorage();
+            render();
+        }
+
+        function calculateRoundScore(roundNum, bid, tricks, bonus) {
+            if (bid === '' || tricks === '' || bid === null || tricks === null || isNaN(bid) || isNaN(tricks)) return 0;
+            bid = parseInt(bid, 10);
+            tricks = parseInt(tricks, 10);
+            bonus = parseInt(bonus, 10) || 0;
+
+            let score = 0;
+            const zeroFactor = options.rascal ? 20 : 10;
+
+            if (bid === 0) {
+                score = (tricks === 0) ? (roundNum * zeroFactor) : (-roundNum * zeroFactor);
+            } else {
+                score = (bid === tricks) ? ((bid * 20) + bonus) : (-20 * Math.abs(bid - tricks));
+            }
+            return score;
+        }
+
+        function getCumulativeScores() {
+            return players.map((_, pIdx) => {
+                let total = 0;
+                for (let r = 0; r < 10; r++) {
+                    if (scores[r] && scores[r][pIdx]) {
+                        const p = scores[r][pIdx];
+                        if (p.bid !== '' && p.tricks !== '' && p.bid !== null && p.tricks !== null) {
+                            total += calculateRoundScore(r + 1, p.bid, p.tricks, p.bonus);
+                        }
+                    }
+                }
+                return total;
+            });
+        }
+
+        function renderGameScreen() {
+            let roundNum = currentRound + 1;
+            let cumulative = getCumulativeScores();
+            let maxScore = Math.max(...cumulative);
+            if (!scores[currentRound]) scores[currentRound] = {};
+
+            let totalTricks = 0;
+            for (let pIdx = 0; pIdx < players.length; pIdx++) {
+                if (scores[currentRound][pIdx] && scores[currentRound][pIdx].tricks !== '' && scores[currentRound][pIdx].tricks !== null) {
+                    totalTricks += parseInt(scores[currentRound][pIdx].tricks, 10);
+                }
+            }
+            let isTricksValid = (totalTricks === roundNum);
+
+            return `
+                <div class="glass-panel rounded-2xl p-4 sm:p-6 flex flex-col">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-3 border-b border-slate-700/80 gap-3">
+                        <div>
+                            <span class="text-xs uppercase tracking-wider text-amber-400 font-semibold bg-amber-500/10 px-2 py-1 rounded-md border border-amber-500/30">Manche ${roundNum} / 10</span>
+                            <h2 class="font-pirate text-4xl text-white mt-2">${roundNum} Carte${roundNum > 1 ? 's' : ''}</h2>
+                        </div>
+                        <div class="flex gap-2 w-full sm:w-auto">
+                            <button onclick="openHistoryModal()" class="flex-1 sm:flex-none text-xs bg-slate-800 hover:bg-slate-700 text-amber-300 px-3 py-2.5 rounded-xl border border-slate-600 font-semibold transition shadow-md">📜 Registre</button>
+        
