@@ -25,11 +25,15 @@
             border: 1px solid rgba(255, 255, 255, 0.1); 
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
+        /* Masquer la scrollbar pour un design plus propre sur mobile */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(245, 158, 11, 0.3); border-radius: 10px; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-between p-3 sm:p-6 selection:bg-amber-500 selection:text-slate-950">
 
-    <!-- En-tête -->
+    <!-- En-tête Global -->
     <header class="text-center mb-4 w-full max-w-3xl z-10">
         <h1 class="font-pirate text-5xl sm:text-7xl text-amber-400 tracking-wider drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]">
             🏴‍☠️ Skull King 🏴‍☠️
@@ -37,74 +41,158 @@
         <h2 class="font-pirate text-2xl sm:text-3xl text-amber-200 mt-1 drop-shadow-lg">Le Trône des Sept Mers</h2>
     </header>
 
-    <!-- Application injectée ici -->
-    <main id="app" class="w-full max-w-3xl flex-grow flex flex-col justify-center z-10">
-        <div class="text-center text-amber-500 font-pirate text-2xl animate-pulse">
-            Chargement du navire... ⚓
+    <main class="w-full max-w-3xl flex-grow flex flex-col justify-center z-10">
+        
+        <!-- ================= ECRAN 1 : SETUP (Affiché par défaut) ================= -->
+        <div id="screen-setup" class="glass-panel rounded-2xl p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="font-pirate text-3xl text-amber-300 flex items-center gap-2"><span>⚓</span> Équipage</h2>
+                <button onclick="openArchivesModal()" class="text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/50 px-3 py-2 rounded-xl font-bold transition shadow-lg">📜 Archives</button>
+            </div>
+            
+            <div class="mb-5">
+                <div id="setup-players-container" class="space-y-3 mb-4">
+                    <!-- Injecté par JS -->
+                </div>
+                <div class="flex gap-2 items-center bg-slate-900/60 p-1.5 rounded-xl border border-slate-700 border-dashed">
+                    <input type="text" id="new-player-input" placeholder="Nouveau pirate..." class="bg-transparent px-3 py-2 text-sm text-slate-100 flex-grow focus:outline-none focus:text-amber-400">
+                    <button onclick="addSetupPlayer()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm transition">Ajouter</button>
+                </div>
+            </div>
+
+            <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 mb-6 space-y-3">
+                <h3 class="text-sm font-semibold text-amber-400">📜 Règles :</h3>
+                <label class="flex items-center gap-3 cursor-pointer text-sm">
+                    <input type="checkbox" id="opt-rascal" onchange="toggleOption('rascal', this.checked)" class="rounded text-amber-600 h-5 w-5 bg-slate-800 border-slate-600">
+                    <span>Rascal <span class="text-xs text-slate-400">(Pari 0 = ±20pts/carte)</span></span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer text-sm">
+                    <input type="checkbox" id="opt-extension" onchange="toggleOption('extension', this.checked)" class="rounded text-cyan-600 h-5 w-5 bg-slate-800 border-slate-600">
+                    <span>Extension <span class="text-xs text-slate-400">(Cartes violettes & additionnelles)</span></span>
+                </label>
+            </div>
+
+            <button onclick="startVoyage()" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-pirate text-3xl py-4 rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.4)] font-bold">
+                Hisser les voiles ! 🏴‍☠️
+            </button>
         </div>
+
+        <!-- ================= ECRAN 2 : JEU (Masqué par défaut) ================= -->
+        <div id="screen-playing" class="hidden glass-panel rounded-2xl p-4 sm:p-6 flex flex-col">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-3 border-b border-slate-700/80 gap-3">
+                <div>
+                    <span id="ui-round-badge" class="text-xs uppercase tracking-wider text-amber-400 font-semibold bg-amber-500/10 px-2 py-1 rounded-md border border-amber-500/30">Manche 1 / 10</span>
+                    <h2 id="ui-round-title" class="font-pirate text-4xl text-white mt-2">1 Carte</h2>
+                </div>
+                <div class="flex gap-2 w-full sm:w-auto">
+                    <button onclick="openHistoryModal()" class="flex-1 sm:flex-none text-xs bg-slate-800 hover:bg-slate-700 text-amber-300 px-3 py-2.5 rounded-xl border border-slate-600 font-semibold transition">📜 Registre</button>
+                    <button onclick="backToSetup()" class="flex-1 sm:flex-none text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2.5 rounded-xl border border-slate-600 transition">⚙️ Config.</button>
+                </div>
+            </div>
+
+            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700 mb-4 flex flex-wrap gap-2 items-center text-xs">
+                <span class="text-slate-400 font-semibold w-full sm:w-auto">Classement :</span>
+                <div id="ui-leaderboard" class="flex flex-wrap gap-3">
+                    <!-- Injecté par JS -->
+                </div>
+            </div>
+
+            <div id="ui-trick-status" class="mb-4 px-3 py-2 rounded-xl text-xs font-medium border flex items-center justify-between">
+                <!-- Injecté par JS -->
+            </div>
+
+            <div id="game-players-container" class="space-y-3 mb-6 max-h-[44vh] overflow-y-auto pr-1">
+                <!-- Injecté par JS -->
+            </div>
+
+            <div class="flex gap-3 mt-auto">
+                <button id="btn-prev-round" onclick="prevRound()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 py-3.5 rounded-xl font-bold text-sm shadow-md">← Préc.</button>
+                <button id="btn-next-round" onclick="nextRound()" class="flex-1 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 text-slate-950 font-bold py-3.5 rounded-xl text-sm shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                    Suivant →
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= ECRAN 3 : FIN (Masqué par défaut) ================= -->
+        <div id="screen-finished" class="hidden glass-panel rounded-2xl p-8 text-center">
+            <h2 class="font-pirate text-5xl text-amber-400 mb-2 drop-shadow-md">Fin du Voyage !</h2>
+            <p class="text-slate-300 text-sm mb-8">Le Trône a trouvé son souverain !</p>
+
+            <div id="ui-podium" class="space-y-3 mb-8 max-w-sm mx-auto">
+                <!-- Injecté par JS -->
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button onclick="openHistoryModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-3.5 rounded-xl font-semibold border border-slate-600 shadow-md">📜 Registre</button>
+                <button onclick="resetGame()" class="flex-1 bg-amber-600 hover:bg-amber-500 text-slate-950 font-pirate text-2xl py-3.5 rounded-xl font-bold shadow-[0_0_15px_rgba(245,158,11,0.4)]">Nouvelle Partie</button>
+            </div>
+        </div>
+
     </main>
 
-    <!-- Modale Bonus & Extension -->
+    <!-- ================= MODALES ================= -->
+
+    <!-- Modale Bonus -->
     <div id="bonus-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="glass-panel rounded-2xl p-6 w-full max-w-md border border-amber-500/40">
             <h3 class="font-pirate text-2xl text-amber-400 mb-1">💎 Bonus & Captures</h3>
             <p class="text-xs text-slate-400 mb-4">Sélectionne les bonus (rapportent 0 si la mise est ratée).</p>
             
             <div class="space-y-2.5 mb-6 max-h-[55vh] overflow-y-auto pr-1">
-                <div class="text-[11px] uppercase tracking-wider text-amber-400 font-bold pt-1">Règles de Base & Captures</div>
+                <div class="text-[11px] uppercase tracking-wider text-amber-400 font-bold pt-1">Règles de Base</div>
                 <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-700">
-                    <span class="text-sm">14 Classique <span class="text-xs text-amber-400">(+10 pts/carte)</span></span>
+                    <span class="text-sm">14 Classique <span class="text-xs text-amber-400">(+10)</span></span>
                     <div class="flex items-center gap-2">
-                        <button onclick="adjustModalNumber('b-14-std', -1, 0, 3)" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-600 text-white font-bold">-</button>
+                        <button onclick="adjustModalNumber('b-14-std', -1, 0, 3)" class="w-7 h-7 bg-slate-800 rounded-lg border border-slate-600 text-white font-bold">-</button>
                         <span id="txt-b-14-std" class="w-6 text-center font-semibold text-slate-100">0</span>
-                        <button onclick="adjustModalNumber('b-14-std', 1, 0, 3)" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-600 text-white font-bold">+</button>
+                        <button onclick="adjustModalNumber('b-14-std', 1, 0, 3)" class="w-7 h-7 bg-slate-800 rounded-lg border border-slate-600 text-white font-bold">+</button>
                     </div>
                 </label>
                 <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-700 cursor-pointer">
-                    <span class="text-sm">14 Noir / Drapeau <span class="text-xs text-amber-400">(+20 pts)</span></span>
-                    <input type="checkbox" id="b-14-black" class="h-5 w-5 rounded text-amber-600 bg-slate-800 border-slate-600 cursor-pointer" onchange="updateModalTotal()">
+                    <span class="text-sm">14 Noir / Drapeau <span class="text-xs text-amber-400">(+20)</span></span>
+                    <input type="checkbox" id="b-14-black" class="h-5 w-5 rounded text-amber-600 bg-slate-800 border-slate-600" onchange="updateModalTotal()">
                 </label>
                 <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-700">
-                    <span class="text-sm">Pirate capture Sirène <span class="text-xs text-amber-400">(+20 pts)</span></span>
+                    <span class="text-sm">Pirate capture Sirène <span class="text-xs text-amber-400">(+20)</span></span>
                     <div class="flex items-center gap-2">
-                        <button onclick="adjustModalNumber('b-pirate-mermaid', -1, 0, 5)" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-600 text-white font-bold">-</button>
+                        <button onclick="adjustModalNumber('b-pirate-mermaid', -1, 0, 5)" class="w-7 h-7 bg-slate-800 rounded-lg border border-slate-600 text-white font-bold">-</button>
                         <span id="txt-b-pirate-mermaid" class="w-6 text-center font-semibold text-slate-100">0</span>
-                        <button onclick="adjustModalNumber('b-pirate-mermaid', 1, 0, 5)" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-600 text-white font-bold">+</button>
+                        <button onclick="adjustModalNumber('b-pirate-mermaid', 1, 0, 5)" class="w-7 h-7 bg-slate-800 rounded-lg border border-slate-600 text-white font-bold">+</button>
                     </div>
                 </label>
                 <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-700 cursor-pointer">
-                    <span class="text-sm">Skull King capture Pirate <span class="text-xs text-amber-400">(+30 pts)</span></span>
-                    <input type="checkbox" id="b-sk-pirate" class="h-5 w-5 rounded text-amber-600 bg-slate-800 border-slate-600 cursor-pointer" onchange="updateModalTotal()">
+                    <span class="text-sm">Skull King capture Pirate <span class="text-xs text-amber-400">(+30)</span></span>
+                    <input type="checkbox" id="b-sk-pirate" class="h-5 w-5 rounded text-amber-600 bg-slate-800 border-slate-600" onchange="updateModalTotal()">
                 </label>
                 <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-700 cursor-pointer">
-                    <span class="text-sm">Sirène capture Skull King <span class="text-xs text-amber-400">(+40 pts)</span></span>
-                    <input type="checkbox" id="b-mermaid-sk" class="h-5 w-5 rounded text-amber-600 bg-slate-800 border-slate-600 cursor-pointer" onchange="updateModalTotal()">
+                    <span class="text-sm">Sirène capture Skull King <span class="text-xs text-amber-400">(+40)</span></span>
+                    <input type="checkbox" id="b-mermaid-sk" class="h-5 w-5 rounded text-amber-600 bg-slate-800 border-slate-600" onchange="updateModalTotal()">
                 </label>
 
                 <div id="extension-bonus-section" class="hidden space-y-2.5 pt-2 border-t border-slate-700">
-                    <div class="text-[11px] uppercase tracking-wider text-cyan-400 font-bold pt-1">🎁 Extension (Cartes Additionnelles)</div>
+                    <div class="text-[11px] uppercase tracking-wider text-cyan-400 font-bold pt-1">🎁 Extension</div>
                     <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-700">
-                        <span class="text-sm">Blason 8 (Couleur) <span class="text-xs text-cyan-400">(+5 pts/carte)</span></span>
+                        <span class="text-sm">Blason 8 (Couleur) <span class="text-xs text-cyan-400">(+5)</span></span>
                         <div class="flex items-center gap-2">
-                            <button onclick="adjustModalNumber('b-ext-8', -1, 0, 4)" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-600 text-white font-bold">-</button>
+                            <button onclick="adjustModalNumber('b-ext-8', -1, 0, 4)" class="w-7 h-7 bg-slate-800 rounded-lg border border-slate-600 text-white font-bold">-</button>
                             <span id="txt-b-ext-8" class="w-6 text-center font-semibold text-slate-100">0</span>
-                            <button onclick="adjustModalNumber('b-ext-8', 1, 0, 4)" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-600 text-white font-bold">+</button>
+                            <button onclick="adjustModalNumber('b-ext-8', 1, 0, 4)" class="w-7 h-7 bg-slate-800 rounded-lg border border-slate-600 text-white font-bold">+</button>
                         </div>
                     </label>
                     <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-700">
-                        <span class="text-sm">Blason 7 (Couleur) <span class="text-xs text-rose-400">(-5 pts/carte)</span></span>
+                        <span class="text-sm">Blason 7 (Couleur) <span class="text-xs text-rose-400">(-5)</span></span>
                         <div class="flex items-center gap-2">
-                            <button onclick="adjustModalNumber('b-ext-7', -1, 0, 4)" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-600 text-white font-bold">-</button>
+                            <button onclick="adjustModalNumber('b-ext-7', -1, 0, 4)" class="w-7 h-7 bg-slate-800 rounded-lg border border-slate-600 text-white font-bold">-</button>
                             <span id="txt-b-ext-7" class="w-6 text-center font-semibold text-slate-100">0</span>
-                            <button onclick="adjustModalNumber('b-ext-7', 1, 0, 4)" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-600 text-white font-bold">+</button>
+                            <button onclick="adjustModalNumber('b-ext-7', 1, 0, 4)" class="w-7 h-7 bg-slate-800 rounded-lg border border-slate-600 text-white font-bold">+</button>
                         </div>
                     </label>
                     <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-700">
-                        <span class="text-sm">Casier de Davy Jones <span class="text-xs text-cyan-400">(+20 pts/léviathan)</span></span>
+                        <span class="text-sm">Casier de Davy Jones <span class="text-xs text-cyan-400">(+20)</span></span>
                         <div class="flex items-center gap-2">
-                            <button onclick="adjustModalNumber('b-davy-jones', -1, 0, 5)" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-600 text-white font-bold">-</button>
+                            <button onclick="adjustModalNumber('b-davy-jones', -1, 0, 5)" class="w-7 h-7 bg-slate-800 rounded-lg border border-slate-600 text-white font-bold">-</button>
                             <span id="txt-b-davy-jones" class="w-6 text-center font-semibold text-slate-100">0</span>
-                            <button onclick="adjustModalNumber('b-davy-jones', 1, 0, 5)" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-600 text-white font-bold">+</button>
+                            <button onclick="adjustModalNumber('b-davy-jones', 1, 0, 5)" class="w-7 h-7 bg-slate-800 rounded-lg border border-slate-600 text-white font-bold">+</button>
                         </div>
                     </label>
                 </div>
@@ -116,21 +204,21 @@
             </div>
 
             <div class="flex gap-3">
-                <button onclick="closeBonusModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-xl font-semibold transition text-sm">Annuler</button>
-                <button onclick="saveBonusModal()" class="flex-1 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold py-2.5 rounded-xl transition text-sm shadow-lg">Valider</button>
+                <button onclick="closeModal('bonus-modal')" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-xl font-semibold text-sm">Annuler</button>
+                <button onclick="saveBonusModal()" class="flex-1 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold py-2.5 rounded-xl text-sm">Valider</button>
             </div>
         </div>
     </div>
 
-    <!-- Modale Historique Global -->
+    <!-- Modale Historique -->
     <div id="history-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="glass-panel rounded-2xl p-6 w-full max-w-4xl border border-amber-500/40 max-h-[85vh] flex flex-col">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-pirate text-3xl text-amber-400">📜 Registre</h3>
-                <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-white text-xl font-bold px-2">✕</button>
+                <button onclick="closeModal('history-modal')" class="text-slate-400 hover:text-white text-xl font-bold px-2">✕</button>
             </div>
             <div id="history-table-container" class="overflow-x-auto flex-grow mb-4"></div>
-            <button onclick="closeHistoryModal()" class="w-full bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-xl font-semibold transition text-sm">Fermer</button>
+            <button onclick="closeModal('history-modal')" class="w-full bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-xl font-semibold">Fermer</button>
         </div>
     </div>
 
@@ -139,39 +227,41 @@
         <div class="glass-panel rounded-2xl p-6 w-full max-w-2xl border border-amber-500/40 max-h-[85vh] flex flex-col">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-pirate text-3xl text-amber-400">🏴‍☠️ Archives</h3>
-                <button onclick="closeArchivesModal()" class="text-slate-400 hover:text-white text-xl font-bold px-2">✕</button>
+                <button onclick="closeModal('archives-modal')" class="text-slate-400 hover:text-white text-xl font-bold px-2">✕</button>
             </div>
             <div id="archives-content" class="overflow-y-auto flex-grow mb-4 space-y-3 pr-1"></div>
             <div class="flex gap-3 pt-2 border-t border-slate-700">
-                <button onclick="clearArchives()" class="bg-rose-900/60 hover:bg-rose-800 text-rose-300 px-4 py-2.5 rounded-xl text-xs font-semibold transition">🗑️ Effacer</button>
-                <button onclick="closeArchivesModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-xl font-semibold transition text-sm">Fermer</button>
+                <button onclick="clearArchives()" class="bg-rose-900/60 hover:bg-rose-800 text-rose-300 px-4 py-2.5 rounded-xl text-xs font-semibold">🗑️ Effacer</button>
+                <button onclick="closeModal('archives-modal')" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-xl font-semibold text-sm">Fermer</button>
             </div>
         </div>
     </div>
 
-    <!-- SCRIPT DE GESTION -->
+    <!-- ================= SCRIPT COMPLET SÉCURISÉ ================= -->
     <script>
-        let gameState = 'setup';
-        let currentRound = 0;
-        let players = ["Capitaine", "Anne", "Jack"];
-        let options = { rascal: false, extension: false };
-        let scores = {};
-        let bonusDetails = {};
-        let activeBonusContext = { round: null, playerIndex: null };
+        // État de base
+        var gameState = 'setup';
+        var currentRound = 0;
+        var players = ['Capitaine', 'Anne', 'Jack'];
+        var options = { rascal: false, extension: false };
+        var scores = {};
+        var bonusDetails = {};
+        var activeBonusPlayerIndex = null;
 
-        function safeLoad() {
+        // Fonction d'initialisation
+        function init() {
             try {
-                if(localStorage.getItem('sk_state')) {
+                if (localStorage.getItem('sk_state')) {
                     gameState = localStorage.getItem('sk_state');
                 }
                 currentRound = parseInt(localStorage.getItem('sk_current_round'), 10) || 0;
                 
-                let savedPlayers = JSON.parse(localStorage.getItem('sk_players'));
+                var savedPlayers = JSON.parse(localStorage.getItem('sk_players'));
                 if (Array.isArray(savedPlayers) && savedPlayers.length >= 2) {
                     players = savedPlayers;
                 }
                 
-                let savedOpts = JSON.parse(localStorage.getItem('sk_options'));
+                var savedOpts = JSON.parse(localStorage.getItem('sk_options'));
                 if (savedOpts) {
                     options.rascal = !!savedOpts.rascal;
                     options.extension = !!savedOpts.extension;
@@ -180,22 +270,14 @@
                 scores = JSON.parse(localStorage.getItem('sk_scores')) || {};
                 bonusDetails = JSON.parse(localStorage.getItem('sk_bonus_details')) || {};
             } catch (e) {
-                console.error("Erreur de chargement, réinitialisation", e);
-                resetAllData();
+                console.error("Erreur de lecture, remise à zéro.");
+                clearGameData();
             }
+            updateUI();
         }
 
-        function resetAllData() {
-            gameState = 'setup';
-            currentRound = 0;
-            players = ["Capitaine", "Anne", "Jack"];
-            options = { rascal: false, extension: false };
-            scores = {};
-            bonusDetails = {};
-            try { localStorage.clear(); } catch(e) {}
-        }
-
-        function saveToStorage() {
+        // Sauvegarde
+        function saveState() {
             try {
                 localStorage.setItem('sk_state', gameState);
                 localStorage.setItem('sk_current_round', currentRound);
@@ -206,116 +288,12 @@
             } catch (e) {}
         }
 
-        function render() {
-            const app = document.getElementById('app');
-            if (gameState === 'setup') {
-                app.innerHTML = renderSetupScreen();
-            } else if (gameState === 'playing') {
-                app.innerHTML = renderGameScreen();
-            } else if (gameState === 'finished') {
-                app.innerHTML = renderFinishedScreen();
-            }
-        }
-
-        function renderSetupScreen() {
-            return `
-                <div class="glass-panel rounded-2xl p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="font-pirate text-3xl text-amber-300 flex items-center gap-2">
-                            <span>⚓</span> Équipage
-                        </h2>
-                        <button onclick="openArchivesModal()" class="text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/50 px-3 py-2 rounded-xl font-bold transition flex items-center gap-1 shadow-lg">
-                            📜 Archives
-                        </button>
-                    </div>
-                    
-                    <div class="mb-5">
-                        <div class="space-y-3 mb-4">
-                            ${players.map((p, idx) => `
-                                <div class="flex gap-2 items-center bg-slate-900/60 p-1.5 rounded-xl border border-slate-700">
-                                    <input type="text" value="${p}" onchange="updatePlayerName(${idx}, this.value)" 
-                                        class="bg-transparent px-3 py-2 text-slate-100 flex-grow focus:outline-none focus:text-amber-400 font-medium">
-                                    ${players.length > 2 ? `<button onclick="removeSetupPlayer(${idx})" class="bg-rose-900/60 hover:bg-rose-800 text-rose-300 px-3.5 py-2 rounded-lg font-bold transition">✕</button>` : ''}
-                                </div>
-                            `).join('')}
-                        </div>
-                        <div class="flex gap-2 items-center bg-slate-900/60 p-1.5 rounded-xl border border-slate-700 border-dashed">
-                            <input type="text" id="new-player-input" placeholder="Nouveau pirate..." class="bg-transparent px-3 py-2 text-sm text-slate-100 flex-grow focus:outline-none focus:text-amber-400">
-                            <button onclick="addSetupPlayer()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm transition">Ajouter</button>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 mb-6 space-y-3">
-                        <h3 class="text-sm font-semibold text-amber-400">📜 Règles :</h3>
-                        <label class="flex items-center gap-3 cursor-pointer text-sm">
-                            <input type="checkbox" ${options.rascal ? 'checked' : ''} onchange="options.rascal = this.checked; saveToStorage();" class="rounded text-amber-600 h-5 w-5 bg-slate-800 border-slate-600 cursor-pointer">
-                            <span>Rascal <span class="text-xs text-slate-400">(Pari 0 = ±20pts/carte)</span></span>
-                        </label>
-                        <label class="flex items-center gap-3 cursor-pointer text-sm">
-                            <input type="checkbox" ${options.extension ? 'checked' : ''} onchange="options.extension = this.checked; saveToStorage();" class="rounded text-cyan-600 h-5 w-5 bg-slate-800 border-slate-600 cursor-pointer">
-                            <span>Extension <span class="text-xs text-slate-400">(Cartes violettes & additionnelles)</span></span>
-                        </label>
-                    </div>
-
-                    <button onclick="startVoyage()" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-pirate text-3xl py-4 rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.4)] transition tracking-wide font-bold">
-                        Hisser les voiles ! 🏴‍☠️
-                    </button>
-                </div>
-            `;
-        }
-
-        function updatePlayerName(idx, val) {
-            if (val.trim()) players[idx] = val.trim();
-            saveToStorage();
-        }
-
-        function addSetupPlayer() {
-            const input = document.getElementById('new-player-input');
-            const name = input ? input.value.trim() : '';
-            if (name && !players.includes(name)) {
-                players.push(name);
-                saveToStorage();
-                render();
-            }
-        }
-
-        function removeSetupPlayer(idx) {
-            if (players.length > 2) {
-                players.splice(idx, 1);
-                saveToStorage();
-                render();
-            }
-        }
-
-        function startVoyage() {
-            gameState = 'playing';
+        function clearGameData() {
+            gameState = 'setup';
             currentRound = 0;
+            players = ['Capitaine', 'Anne', 'Jack'];
+            options = { rascal: false, extension: false };
             scores = {};
             bonusDetails = {};
-            localStorage.setItem('sk_game_timestamp', Date.now().toString());
-            saveToStorage();
-            render();
-        }
-
-        function calculateRoundScore(roundNum, bid, tricks, bonus) {
-            if (bid === '' || tricks === '' || bid === null || tricks === null || isNaN(bid) || isNaN(tricks)) return 0;
-            bid = parseInt(bid, 10);
-            tricks = parseInt(tricks, 10);
-            bonus = parseInt(bonus, 10) || 0;
-
-            let score = 0;
-            const zeroFactor = options.rascal ? 20 : 10;
-
-            if (bid === 0) {
-                score = (tricks === 0) ? (roundNum * zeroFactor) : (-roundNum * zeroFactor);
-            } else {
-                score = (bid === tricks) ? ((bid * 20) + bonus) : (-20 * Math.abs(bid - tricks));
-            }
-            return score;
-        }
-
-        function getCumulativeScores() {
-            return players.map((_, pIdx) => {
-                let total = 0;
-                for (let r = 0; r < 10; r++) {
-                    if (scores[r] && scores[r
+            try {
+                localStorage.removeItem('
