@@ -59,7 +59,7 @@
                     <input type="checkbox" id="b-mermaid-sk" class="h-5 w-5 rounded text-amber-600 bg-slate-800 border-slate-600 cursor-pointer" onchange="updateModalTotal()">
                 </label>
 
-                <!-- Éléments de l'Extension (Conditionnels) -->
+                <!-- Éléments de l'Extension -->
                 <div id="extension-bonus-section" class="hidden space-y-2.5 pt-2 border-t border-slate-700">
                     <div class="text-[11px] uppercase tracking-wider text-cyan-400 font-bold pt-1">🎁 Éléments de l'Extension</div>
                     <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#0b132b]/60 border border-slate-700/80">
@@ -67,7 +67,7 @@
                         <input type="number" id="b-loot" min="0" max="5" value="0" class="w-16 bg-slate-800 text-center rounded-lg border border-slate-600 py-1 text-slate-100 font-semibold" onchange="updateModalTotal()">
                     </label>
                     <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#0b132b]/60 border border-slate-700/80 cursor-pointer">
-                        <span class="text-sm">Kraken / Baleine Blanche <span class="text-xs text-cyan-400">(Bonus/Effet)</span></span>
+                        <span class="text-sm">Kraken / Baleine Blanche <span class="text-xs text-cyan-400">(+30 pts)</span></span>
                         <input type="checkbox" id="b-extension-special" class="h-5 w-5 rounded text-cyan-600 bg-slate-800 border-slate-600 cursor-pointer" onchange="updateModalTotal()">
                     </label>
                 </div>
@@ -114,7 +114,8 @@
 
     <!-- Script Logique -->
     <script>
-        let gameState, currentRound, players, options, scores;
+        let gameState, currentRound, players, options, scores, bonusDetails;
+        let activeBonusContext = { round: null, playerIndex: null };
 
         function safeLoad() {
             try {
@@ -128,21 +129,16 @@
                     extension: savedOpts ? !!savedOpts.extension : false
                 };
                 scores = JSON.parse(localStorage.getItem('sk_scores')) || {};
+                bonusDetails = JSON.parse(localStorage.getItem('sk_bonus_details')) || {};
             } catch (e) {
                 gameState = 'setup';
                 currentRound = 0;
                 players = ["Capitaine", "Anne", "Jack"];
                 options = { rascal: false, extension: false };
                 scores = {};
+                bonusDetails = {};
                 localStorage.clear();
             }
-        }
-
-        let activeBonusContext = { round: null, playerIndex: null };
-
-        function init() {
-            safeLoad();
-            render();
         }
 
         function saveToStorage() {
@@ -152,9 +148,15 @@
                 localStorage.setItem('sk_players', JSON.stringify(players));
                 localStorage.setItem('sk_options', JSON.stringify(options));
                 localStorage.setItem('sk_scores', JSON.stringify(scores));
+                localStorage.setItem('sk_bonus_details', JSON.stringify(bonusDetails));
             } catch (e) {
                 console.error("Erreur de sauvegarde", e);
             }
+        }
+
+        function init() {
+            safeLoad();
+            render();
         }
 
         function render() {
@@ -201,7 +203,7 @@
                         <h3 class="text-sm font-semibold text-amber-400">📜 Règles optionnelles :</h3>
                         <label class="flex items-center gap-3 cursor-pointer text-sm">
                             <input type="checkbox" id="opt-rascal" ${options.rascal ? 'checked' : ''} onchange="options.rascal = this.checked; saveToStorage();" class="rounded text-amber-600 h-4 w-4 bg-slate-800 border-slate-600 cursor-pointer">
-                            <span>Variante Rascal <span class="text-xs text-slate-400">(Points de mise fixes)</span></span>
+                            <span>Variante Rascal <span class="text-xs text-slate-400">(Points de mise fixes 20pt/carte sur pari 0)</span></span>
                         </label>
                         <label class="flex items-center gap-3 cursor-pointer text-sm">
                             <input type="checkbox" id="opt-extension" ${options.extension ? 'checked' : ''} onchange="options.extension = this.checked; saveToStorage();" class="rounded text-cyan-600 h-4 w-4 bg-slate-800 border-slate-600 cursor-pointer">
@@ -243,8 +245,52 @@
             gameState = 'playing';
             currentRound = 0;
             scores = {};
+            bonusDetails = {};
+            localStorage.setItem('sk_game_timestamp', Date.now().toString());
             saveToStorage();
             render();
+        }
+
+        function calculateRoundScore(roundNum, bid, tricks, bonus) {
+            if (bid === '' || tricks === '' || bid === null || tricks === null || isNaN(bid) || isNaN(tricks)) {
+                return 0;
+            }
+            bid = parseInt(bid, 10);
+            tricks = parseInt(tricks, 10);
+            bonus = parseInt(bonus, 10) || 0;
+
+            let score = 0;
+            const zeroFactor = options.rascal ? 20 : 10;
+
+            if (bid === 0) {
+                if (tricks === 0) {
+                    score = roundNum * zeroFactor;
+                } else {
+                    score = -roundNum * zeroFactor;
+                }
+            } else {
+                if (bid === tricks) {
+                    score = (bid * 20) + bonus;
+                } else {
+                    score = -20 * Math.abs(bid - tricks);
+                }
+            }
+            return score;
+        }
+
+        function getCumulativeScores() {
+            return players.map((_, pIdx) => {
+                let total = 0;
+                for (let r = 0; r < 10; r++) {
+                    if (scores[r] && scores[r][pIdx]) {
+                        const p = scores[r][pIdx];
+                        if (p.bid !== '' && p.tricks !== '' && p.bid !== null && p.tricks !== null) {
+                            total += calculateRoundScore(r + 1, p.bid, p.tricks, p.bonus);
+                        }
+                    }
+                }
+                return total;
+            });
         }
 
         function renderGameScreen() {
@@ -256,8 +302,8 @@
 
             let totalTricks = 0;
             for (let pIdx = 0; pIdx < players.length; pIdx++) {
-                if (scores[currentRound][pIdx] && scores[currentRound][pIdx].tricks !== '') {
-                    totalTricks += scores[currentRound][pIdx].tricks;
+                if (scores[currentRound][pIdx] && scores[currentRound][pIdx].tricks !== '' && scores[currentRound][pIdx].tricks !== null) {
+                    totalTricks += parseInt(scores[currentRound][pIdx].tricks, 10);
                 }
             }
             let isTricksValid = (totalTricks === roundNum);
@@ -277,28 +323,4 @@
 
                     <div class="bg-[#0b132b]/70 p-3 rounded-xl border border-slate-700/60 mb-4 flex flex-wrap gap-2 items-center justify-between text-xs">
                         <span class="text-slate-400 font-semibold">Classement provisoire :</span>
-                        <div class="flex flex-wrap gap-3">
-                            ${players.map((p, idx) => `
-                                <div class="flex items-center gap-1 ${cumulative[idx] === maxScore && maxScore !== 0 ? 'text-amber-300 font-bold' : 'text-slate-300'}">
-                                    <span>${p}:</span>
-                                    <span class="font-mono">${cumulative[idx]} pts</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-
-                    <!-- Alerte Plis Invalides -->
-                    <div class="mb-3 px-3 py-2 rounded-xl text-xs font-medium border flex items-center justify-between ${isTricksValid ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300' : 'bg-amber-950/40 border-amber-500/40 text-amber-300'}">
-                        <span>⚓ Plis totaux : <strong>${totalTricks} / ${roundNum}</strong> ${roundNum > 1 ? 'attendus' : 'attendu'}</span>
-                        <span>${isTricksValid ? '✅ Total correct' : '⚠️ Vérifie le nombre de plis !'}</span>
-                    </div>
-
-                    <div class="space-y-3 mb-6 max-h-[44vh] overflow-y-auto pr-1">
-                        ${players.map((player, pIdx) => {
-                            if (!scores[currentRound][pIdx]) scores[currentRound][pIdx] = { bid: '', tricks: '', bonus: 0 };
-                            let pData = scores[currentRound][pIdx];
-                            let playerRoundScore = calculateRoundScore(roundNum, pData.bid, pData.tricks, pData.bonus);
-
-                            return `
-                                <div class="bg-[#0b132b] p-3.5 sm:p-4 rounded-xl border border-slate-700/80 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-inner">
-                                    <div class="w-full sm:w-1/3 flex items-center justify-b
+                        <d
